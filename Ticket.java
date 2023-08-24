@@ -13,26 +13,28 @@ public class Ticket
     {
         try {
             ArrayList<Long> prices = new ArrayList<>();
+            HashMap<String, Long> minFlight = new HashMap<>();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy k:mm");
             double average = 0;
             double median;
             JSONObject json = (JSONObject) new JSONParser().parse(new FileReader("tickets.json"));
             JSONArray tickets = (JSONArray) json.get("tickets");
             JSONObject test = (JSONObject) tickets.get(0);
-            LocalDateTime date_departure = LocalDateTime.parse(((String) ((JSONObject) tickets.get(0)).get("departure_date")).replace(".", "-") + " " + ((String) ((JSONObject) tickets.get(0)).get("departure_time")), formatter);
-            LocalDateTime date_arrival = LocalDateTime.parse(((String) ((JSONObject) tickets.get(0)).get("arrival_date")).replace(".", "-") + " " + ((String) ((JSONObject) tickets.get(0)).get("arrival_time")), formatter);
-            long minDiffrence = Duration.between(date_departure, date_arrival).getSeconds();
             for (int i = 0; i < tickets.size(); ++i) {
                 JSONObject item = (JSONObject) tickets.get(i);
                 if (((String) item.get("origin_name")).equals("Владивосток") && ((String) item.get("destination_name")).equals("Тель-Авив") ||
                     ((String) item.get("destination_name")).equals("Владивосток") && ((String) item.get("origin_name")).equals("Тель-Авив")) {
                     prices.add((long) item.get("price"));
                     average += (long) item.get("price");
-                    date_departure = LocalDateTime.parse(((String) item.get("departure_date")).replace(".", "-") + " " + ((String) item.get("departure_time")), formatter);
-                    date_arrival = LocalDateTime.parse(((String) item.get("arrival_date")).replace(".", "-") + " " + ((String) item.get("arrival_time")), formatter);
+                    LocalDateTime date_departure = LocalDateTime.parse(((String) item.get("departure_date")).replace(".", "-") + " " + ((String) item.get("departure_time")), formatter);
+                    LocalDateTime date_arrival = LocalDateTime.parse(((String) item.get("arrival_date")).replace(".", "-") + " " + ((String) item.get("arrival_time")), formatter);
                     long diffrence = Duration.between(date_departure, date_arrival).getSeconds();
-                    if (diffrence < minDiffrence) {
-                        minDiffrence = diffrence;
+                    if (minFlight.containsKey((String) item.get("carrier"))) {
+                        if (minFlight.get((String) item.get("carrier")) > diffrence) {
+                            minFlight.put((String) item.get("carrier"), diffrence);
+                        }
+                    } else {
+                        minFlight.put((String) item.get("carrier"), diffrence);
                     }
                 }
             }
@@ -44,9 +46,13 @@ public class Ticket
                 median = (double) prices.get(prices.size() / 2);
             }
             double priceDiffrence = average - median;
+            String answer = "Diffrence of average and median price - " + priceDiffrence + "\n";
+            for(Map.Entry<String, Long> item : minFlight.entrySet()){
+                answer += "Min time of flight on " + item.getKey() + " is " + item.getValue() / 3600 + " hours " + (item.getValue() / 60) % 60 + " minutes\n";
+            }
             System.out.println("Answer into answer.txt");
             FileWriter output = new FileWriter(new File("answer.txt"));
-            output.write("Diffrence of average and median price - " + priceDiffrence + "\nMin time of flight - " + minDiffrence / 3600 + " hours " + (minDiffrence / 60) % 60 + " minutes");
+            output.write(answer);
             output.close();
         } catch(IOException e) {
             System.out.println(e);

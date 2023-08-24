@@ -1,2 +1,6 @@
 Diffrence of average and median price - 460.0
-Min time of flight - 5 hours 50 minutes
+Min time of flight on SU is 6 hours 0 minutes
+Min time of flight on S7 is 6 hours 30 minutes
+Min time of flight on TK is 5 hours 50 minutes
+Min time of flight on BA is 8 hours 5 minutes
+
